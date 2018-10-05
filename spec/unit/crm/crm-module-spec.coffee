@@ -202,6 +202,58 @@ describe 'crm module', ->
       runs ->
         expect(r).toEqual(response)
 
+  describe 'updateRecords', ->
+    response = next = undefined
+    id = '1234567890123456'
+
+    beforeEach ->
+      spyOn(crmModule,'build').andReturn('<?xml version="1.0" encoding="UTF-8"?><crmModule/>')
+      response = new Response({})
+      next = false
+      spyOn(Request.prototype,'request').andCallFake( (cb) ->
+        setImmediate(cb,null,response)
+      )
+      spyOn(crmModule,'buildUrl').andReturn({})
+      spyOn(crmModule,'processRecord').andReturn({})
+
+    it 'requires id if array of objects is not provided', ->
+      expect( () -> crmModule.updateRecords(0, record,() -> ) ).toThrow('Requires an Id to update or array of objects to update')
+
+    it 'requires record object', ->
+      expect( () -> crmModule.updateRecords(id, 0, () -> ) ).toThrow('Requires record object')
+
+    it 'calls buildRecords', ->
+      crmModule.updateRecords(id, record, undefined)
+      expect(crmModule.build).toHaveBeenCalledWith(record)
+
+    it 'builds Url', ->
+      crmModule.updateRecords(id, record, undefined)
+      expect(crmModule.buildUrl).toHaveBeenCalledWith(
+        {newFormat:1, id: id, xmlData:'<?xml version="1.0" encoding="UTF-8"?><crmModule/>'},
+        ['updateRecords'],
+        {method:'POST'}
+      )
+
+    it 'builds multiple update query', ->
+      crmModule.updateRecords(0, [record], undefined)
+      expect(crmModule.buildUrl).toHaveBeenCalledWith(
+        {newFormat:1, version: 4, xmlData:'<?xml version="1.0" encoding="UTF-8"?><crmModule/>'},
+        ['updateRecords'],
+        {method:'POST'}
+      )
+
+    it 'calls callback with response', ->
+      r = undefined
+      runs ->
+        crmModule.updateRecords(id, record, (err,_r) ->
+          r = _r
+          next = true
+        )
+      waitsFor ->
+        return next
+      runs ->
+        expect(r).toEqual(response)
+
   describe 'getRecordById', ->
     next = response = undefined
 
