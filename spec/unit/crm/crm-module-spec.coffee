@@ -201,7 +201,7 @@ describe 'crm module', ->
         return next
       runs ->
         expect(r).toEqual(response)
-        
+
   describe 'updateRecords', ->
     response = next = undefined
     id = '1234567890123456'
@@ -217,8 +217,8 @@ describe 'crm module', ->
       spyOn(crmModule,'buildUrl').andReturn({})
       spyOn(crmModule,'processRecord').andReturn({})
 
-    it 'requires id', ->
-      expect( () -> crmModule.updateRecords(0, record,() -> ) ).toThrow('Requires an Id to fetch')
+    it 'requires id if array of objects is not provided', ->
+      expect( () -> crmModule.updateRecords(0, record,() -> ) ).toThrow('Requires an Id to update or array of objects to update')
 
     it 'requires record object', ->
       expect( () -> crmModule.updateRecords(id, 0, () -> ) ).toThrow('Requires record object')
@@ -231,6 +231,14 @@ describe 'crm module', ->
       crmModule.updateRecords(id, record, undefined)
       expect(crmModule.buildUrl).toHaveBeenCalledWith(
         {newFormat:1, id: id, xmlData:'<?xml version="1.0" encoding="UTF-8"?><crmModule/>'},
+        ['updateRecords'],
+        {method:'POST'}
+      )
+
+    it 'builds multiple update query', ->
+      crmModule.updateRecords(0, [record], undefined)
+      expect(crmModule.buildUrl).toHaveBeenCalledWith(
+        {newFormat:1, version: 4, xmlData:'<?xml version="1.0" encoding="UTF-8"?><crmModule/>'},
         ['updateRecords'],
         {method:'POST'}
       )

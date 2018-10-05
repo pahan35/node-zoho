@@ -363,18 +363,24 @@ class CrmModule extends BaseModule
     )
 
   updateRecords: (id, records, _query, cb) ->
-    if not id
-      throw new Error('Requires an Id to fetch')
-    if not _.isObject(records)
-      throw new Error('Requires record object')
+    query = {}
+    if id
+      if _.isObject(records)
+        query.id = id
+      else
+        throw new Error('Requires record object')
+    else
+      if _.isArray(records)
+        query.version = 4
+      else
+        throw new Error('Requires an Id to update or array of objects to update')
 
     if _.isFunction(_query)
       cb = _query
       _query = {}
 
-    query = _.extend({
+    _.extend(query, {
       newFormat: 1,
-      id: id,
       xmlData: @build(records)
     }, _query)
 
@@ -436,7 +442,7 @@ class CrmModule extends BaseModule
     form.append('id', id)
 
     return r
-      
+
   downloadFile: (id, cb) ->
     if not id
       throw new Error('Requires id to download')
@@ -453,15 +459,15 @@ class CrmModule extends BaseModule
       else
         if _.isFunction(cb) then cb(null,response)
     return r
-      
+
   uploadPhoto: (id, file, descriptor, cb) ->
     if @name is 'Contacts' or  @name is 'Leads'
       query = {}
       options = {method: 'POST'}
-  
+
       url = @buildUrl query, ['uploadPhoto'], options
       request = new Request(@, url)
-  
+
       r = request.request (err,response) =>
         if err
           if _.isFunction(cb) then cb(err,null)
@@ -469,7 +475,7 @@ class CrmModule extends BaseModule
           processed = @processRecord(response.data)
           response.data = processed
           if _.isFunction(cb) then cb(null,response)
-  
+
       form = r.form()
       form.append('id', id)
       form.append('content', file, descriptor)
