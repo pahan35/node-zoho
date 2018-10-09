@@ -29,7 +29,7 @@ class Request
         cb(error,null)
       else
         contentType = response.headers['content-type']
-        if /text\/xml/.test(contenFitType)
+        if /text\/xml/.test(contentType)
           @response = new Response(response)
           @response.parseBody(body,cb)
         else if /text\/html/.test(contentType)
