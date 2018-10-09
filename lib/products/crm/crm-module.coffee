@@ -364,6 +364,8 @@ class CrmModule extends BaseModule
 
   updateRecords: (id, records, _query, cb) ->
     query = {}
+    isMultiple = false
+
     if id
       if _.isObject(records)
         query.id = id
@@ -371,6 +373,7 @@ class CrmModule extends BaseModule
         throw new Error('Requires record object')
     else
       if _.isArray(records)
+        isMultiple = true
         query.version = 4
       else
         throw new Error('Requires an Id to update or array of objects to update')
@@ -394,7 +397,12 @@ class CrmModule extends BaseModule
       if err
         if _.isFunction(cb) then cb(err,null)
       else
-        processed = @processRecord(response.data)
+        if isMultiple
+          processed = for record in response.data
+            @processRecord(record)
+        else
+          processed = @processRecord(response.data)
+
         response.data = processed
         if _.isFunction(cb) then cb(null,response)
     )
