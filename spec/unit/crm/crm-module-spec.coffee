@@ -210,6 +210,7 @@ describe 'crm module', ->
     beforeEach ->
       spyOn(crmModule,'build').andReturn('<?xml version="1.0" encoding="UTF-8"?><crmModule/>')
       response = new Response({})
+      response.data = []
       next = false
       spyOn(Request.prototype,'request').andCallFake( (cb) ->
         setImmediate(cb,null,response)
