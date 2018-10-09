@@ -399,7 +399,11 @@ class CrmModule extends BaseModule
       else
         if isMultiple
           processed = for record in response.data
-            @processRecord(record)
+            (({code, data, message}) => {
+              code,
+              data: if data then @processRecord(data) else null
+              message,
+            })(record)
         else
           processed = @processRecord(response.data)
 

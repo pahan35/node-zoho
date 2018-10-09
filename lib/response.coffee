@@ -46,18 +46,9 @@ class Response
       else
         @data = data
         if @data?.response?.error
-          error = @data.response.error
-
-          if _.isArray(error)
-            error = _.first(error)
-
-          if error?.code
-            @code = error.code
-
-          if error?.message
-            @message = error.message
-          else
-            @message = "Unknown Error"
+          error = @parseError(@data.response.error)
+          @code = error.code
+          @message = error.message
 
           return cb({code: @code, message: @message}, @)
 
@@ -84,39 +75,68 @@ class Response
         else
 
           if @data?.response?.result
-            if _.isArray(@data?.response?.result) and @data?.response?.result.length == 1
-              record = _.first(@data?.response?.result)
-              if record?.message
-                @message = record.message
+            result = @data.response.result
+            if _.isArray(result) and result.length == 1
+              record = _.first(result)
+              if record?.row
+                @data = for row in record.row
+                  if row?.error
+                    @parseError(row.error)
+                  else if row?.success
+                    @parseSuccess(row.success)
 
-              if record?.recorddetail
-                @data = record.recorddetail
               else
-                @data = record
+                if record?.message
+                  @message = record.message
 
-            else
-              return cb(new Error("Multi result arrays not handled"), @)
+                if record?.recorddetail
+                  @data = record.recorddetail
+                else
+                  @data = record
+
           else if @data?.response?.success
             success = @data.response.success
 
-            if _.isArray(success)
-              success = _.first(success)
-
-            if success?.code
-              @code = success.code
-              if _.isArray(@code)
-                @code = _.first(@code)
-
-            if success?.message
-              @message = success.message
-              if _.isArray(@message)
-                @message = _.first(@message)
-            else
-              @message = "Unknown Success"
-
-            @data = {'success' : {'code': @code, 'message': @message}}
+            record = @parseSuccess(success)
+            @code = record.code
+            @data = record.data
+            @message = record.message
 
           return cb(null, @)
+
+  parseError: (error)  ->
+    if _.isArray(error)
+      error = _.first(error)
+
+    if error?.code
+      code = error.code
+
+    if error?.message
+      message = error.message
+    else
+      message = "Unknown Error"
+
+    return {code, message}
+
+  parseSuccess: (success) ->
+    if _.isArray(success)
+      success = _.first(success)
+
+    if success?.code
+      code = success.code
+      if _.isArray(code)
+        code = _.first(code)
+
+    if success?.message
+      message = success.message
+      if _.isArray(message)
+        message = _.first(message)
+    else
+      message = "Unknown Success"
+
+    data = if success?.details then success.details else {'success': {'code': code, 'message': message}}
+
+    return {code, data, message}
 
 
 module.exports = Response

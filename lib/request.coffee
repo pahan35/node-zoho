@@ -17,11 +17,11 @@ class Request
 
   request: (cb) ->
     options = _.pick(@_request,['method'])
-    options.uri = url.format(@_request)
     if options.method == 'POST'
       if @_request.query and @_request.query.xmlData
         options.form = _.pick(@_request.query, ['xmlData'])
         delete @_request.query.xmlData
+    options.uri = url.format(@_request)
 
     chunks = new Buffer('')
     request(options, (error, response, body) =>
