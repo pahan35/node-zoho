@@ -98,7 +98,7 @@ class Response
               return cb(new Error("Multi result arrays not handled"), @)
           else if @data?.response?.success
             success = @data.response.success
-            
+
             if _.isArray(success)
               success = _.first(success)
 
@@ -113,7 +113,7 @@ class Response
                 @message = _.first(@message)
             else
               @message = "Unknown Success"
-            
+
             @data = {'success' : {'code': @code, 'message': @message}}
 
           return cb(null, @)

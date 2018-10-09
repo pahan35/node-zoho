@@ -18,14 +18,24 @@ class Request
   request: (cb) ->
     options = _.pick(@_request,['method'])
     options.uri = url.format(@_request)
+    if options.method == 'POST'
+      if @_request.query and @_request.query.xmlData
+        options.form = _.pick(@_request.query, ['xmlData'])
+        delete @_request.query.xmlData
+
     chunks = new Buffer('')
     request(options, (error, response, body) =>
       if error
         cb(error,null)
       else
-        if /text\/xml/.test(response.headers['content-type'])
+        contentType = response.headers['content-type']
+        if /text\/xml/.test(contenFitType)
           @response = new Response(response)
           @response.parseBody(body,cb)
+        else if /text\/html/.test(contentType)
+          # TODO Parse body error and code
+          error = body
+          cb(error)
         else
           @response = new Response(response)
           @response.parseFile(chunks,cb)
